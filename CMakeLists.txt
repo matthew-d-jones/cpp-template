@@ -20,7 +20,11 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 set(CMAKE_CXX_STANDARD 14)
 if (CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic-errors -Werror")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -pedantic-errors -Werror")
+elseif (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /w4")
+elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything")
 endif()
 
 ###############################################################################
@@ -79,14 +83,15 @@ set(HDR_FILES
 set(LIBRARIES
     CONAN_PKG::fmt
     CONAN_PKG::spdlog
-    CONAN_PKG::cli11
+    CONAN_PKG::CLI11
 )
 
 add_executable(TemplateProject ${SRC_FILES} ${HDR_FILES})
+target_link_libraries(TemplateProject ${LIBRARIES})
 
 ###############################################################################
 ## Unit Tests
 ###############################################################################
 
 add_executable(UnitTests tests/tests.cpp)
-target_link_libraries(UnitTests CONAN_PKG::catch2)
+target_link_libraries(UnitTests CONAN_PKG::Catch2)
