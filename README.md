@@ -1,6 +1,6 @@
 # Template C++ Project
 
-Contains the libraries I use in most C++ codebases:
+Contains the libraries I like to use for most C++ project:
 - [fmt](https://github.com/fmtlib/fmt)
 - [spdlog](https://github.com/gabime/spdlog)
 - [CLI11](https://github.com/CLIUtils/CLI11)
