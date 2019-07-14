@@ -8,7 +8,7 @@ Contains the libraries I like to use for most C++ project:
 
 ## Requirements
 
-The only requirements to be manually installed are `Python`, `pip`, `CMake` and a compiler which is at least C++14 compliant.
+The only requirements to be manually installed on the system are `Python`, `pip`, `CMake` and a compiler which is at least C++14 compliant.
 
 Dependencies are managed by [Conan](https://conan.io/).
 Conan requires Python and pip installed on the system, then:
