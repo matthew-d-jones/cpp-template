@@ -41,18 +41,29 @@ if (UNIX AND NOT APPLE)
   endif()
 endif()
 
-# Enable link-time optimisation
-# Can be slow and affect debugging, so only enabled for release builds
-if (CMAKE_BUILD_TYPE MATCHES Release)
+# Enable link-time optimisation, for performance gains and smaller executable size
+# Typically takes quite a long time and affects debugging, so we'll only enable it for release builds
+if(CMAKE_BUILD_TYPE MATCHES Release)
     include(CheckIPOSupported)
     check_ipo_supported(RESULT result OUTPUT output)
     if(result)
         set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+        # CMake specifies -flto=thin when using clang compiler which automatically parallelises,
+        # but if we are using gcc then we have to explicitly tell it to parallelise
+        if(CMAKE_COMPILER_IS_GNUCXX)
+            include(ProcessorCount)
+            ProcessorCount(NCores) # Returns 0 if it fails
+            if(NOT NCores EQUAL 0)
+                message(STATUS "Parallelising link-time optimisation over ${NCores} CPU cores")
+                list(APPEND CMAKE_C_COMPILE_OPTIONS_IPO "-flto=${NCores}")
+                list(APPEND CMAKE_CXX_COMPILE_OPTIONS_IPO "-flto=${NCores}")
+            endif()
+        endif()
         message(STATUS "Using link-time optimisation")
     else()
         message(STATUS "Link-time optimisation is not supported: ${output}")
     endif()
-endif (CMAKE_BUILD_TYPE MATCHES Release)
+endif(CMAKE_BUILD_TYPE MATCHES Release)
 
 ###############################################################################
 ## Create target to build documentation (Doxygen)
