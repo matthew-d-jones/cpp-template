@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1.0)
 
 ###############################################################################
-## Setup
+## Setup (mainly compiler options)
 ###############################################################################
 
 # Name
@@ -37,8 +37,20 @@ if (UNIX AND NOT APPLE)
   endif()
 endif()
 
+# Enable link-time optimisation
+# Can be slow and affect debugging, so only enabled for release builds
+if (CMAKE_BUILD_TYPE EQUAL "RELEASE")
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT result OUTPUT output)
+    if(result)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+    else()
+        message(WARNING "IPO is not supported: ${output}")
+    endif()
+endif (CMAKE_BUILD_TYPE EQUAL "RELEASE")
+
 ###############################################################################
-## Doxygen
+## Options to build documentation (Doxygen)
 ###############################################################################
 
 set(BUILD_DOCS TRUE)
@@ -55,7 +67,7 @@ if (DOXYGEN_FOUND AND BUILD_DOCS)
 endif()
 
 ###############################################################################
-## Conan
+## Get dependencies (with Conan)
 ###############################################################################
 
 set(CONAN "AUTO" CACHE STRING "conan options AUTO (conan must be in path) or MANUAL (expects conanbuildinfo.cmake in build directory)")
