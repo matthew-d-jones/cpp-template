@@ -16,6 +16,12 @@ Features:
   - [CLI11](https://github.com/CLIUtils/CLI11)
   - [Catch2](https://github.com/catchorg/Catch2)
 
+Some things this template lacks which I may add in the future:
+- Continuous integration configuration
+- Code coverage configuration
+- Static code analysis configuration
+- Code formatting configuration
+
 ## Requirements
 
 The only requirements to be manually installed on the system are `Python`, `pip`, `CMake` and a C++ compiler.
@@ -36,19 +42,20 @@ https://docs.conan.io/en/latest/introduction.html
 ## Build
 
 As usual for a CMake project.
-For example from the source directory do
+For example, make a build directory (preferably somewhere outside the source directory) and do
 ```
-mkdir build
-cd build
-cmake ..
+cmake path/to/source/directory
 cmake --build . -- -j8
 ```
-
-or on Windows
+or, better, with Ninja
 ```
-mkdir build
-cd build
-cmake -G "Visual Studio 15 2017 Win64" ..
+cmake -GNinja path/to/source/directory
+ninja
+```
+
+or, worse ;), on Windows
+```
+cmake -G "Visual Studio 15 2017 Win64" path\to\source\directory
 cmake --build . -- -maxcpucount:8
 ```
 
