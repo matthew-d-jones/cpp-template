@@ -63,5 +63,5 @@ cmake --build . -- -maxcpucount:8
 
 From the build directory
 ```
-./bin/TemplateProject
+./bin/TemplateProject --help
 ```
