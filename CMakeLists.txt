@@ -43,15 +43,16 @@ endif()
 
 # Enable link-time optimisation
 # Can be slow and affect debugging, so only enabled for release builds
-if (CMAKE_BUILD_TYPE EQUAL "Release")
+if (CMAKE_BUILD_TYPE MATCHES Release)
     include(CheckIPOSupported)
     check_ipo_supported(RESULT result OUTPUT output)
     if(result)
         set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+        message(STATUS "Using link-time optimisation")
     else()
-        message(WARNING "IPO is not supported: ${output}")
+        message(STATUS "Link-time optimisation is not supported: ${output}")
     endif()
-endif (CMAKE_BUILD_TYPE EQUAL "Release")
+endif (CMAKE_BUILD_TYPE MATCHES Release)
 
 ###############################################################################
 ## Create target to build documentation (Doxygen)
