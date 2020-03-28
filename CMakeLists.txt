@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.9.0)
 # Name
 project(TemplateProject)
 
-# CMake Build Type
+# Make a Debug build the default
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
@@ -41,7 +41,7 @@ endif()
 
 # Enable link-time optimisation
 # Can be slow and affect debugging, so only enabled for release builds
-if (CMAKE_BUILD_TYPE EQUAL "RELEASE")
+if (CMAKE_BUILD_TYPE EQUAL "Release")
     include(CheckIPOSupported)
     check_ipo_supported(RESULT result OUTPUT output)
     if(result)
@@ -49,7 +49,7 @@ if (CMAKE_BUILD_TYPE EQUAL "RELEASE")
     else()
         message(WARNING "IPO is not supported: ${output}")
     endif()
-endif (CMAKE_BUILD_TYPE EQUAL "RELEASE")
+endif (CMAKE_BUILD_TYPE EQUAL "Release")
 
 ###############################################################################
 ## Create target to build documentation (Doxygen)
