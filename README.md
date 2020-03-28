@@ -1,22 +1,37 @@
 # Template C++ Project
 
-Contains the libraries I like to use for most C++ project:
-- [fmt](https://github.com/fmtlib/fmt)
-- [spdlog](https://github.com/gabime/spdlog)
-- [CLI11](https://github.com/CLIUtils/CLI11)
-- [Catch2](https://github.com/catchorg/Catch2)
+This aims to be a good starting point for cross-platform, modern C++ projects using CMake.
+
+Features:
+- CMake boilerplate to
+  - build an executable which depends on some external libraries.
+  - set compiler flags to be strict about warnings.
+  - make documentation using doxygen.
+  - make use of link-time optimisation if available.
+  - make use of a faster linker if available.
+- Dependency management using [Conan](https://conan.io/).
+- A little example code/boilerplate for libraries I use very frequently:
+  - [fmt](https://github.com/fmtlib/fmt)
+  - [spdlog](https://github.com/gabime/spdlog)
+  - [CLI11](https://github.com/CLIUtils/CLI11)
+  - [Catch2](https://github.com/catchorg/Catch2)
 
 ## Requirements
 
-The only requirements to be manually installed on the system are `Python`, `pip`, `CMake` and a compiler which is at least C++14 compliant.
+The only requirements to be manually installed on the system are `Python`, `pip`, `CMake` and a C++ compiler.
 
-Dependencies are managed by [Conan](https://conan.io/).
 Conan requires Python and pip installed on the system, then:
 ```
 pip install conan
 ```
 
 That should be it, Conan will be run automatically by CMake to download the dependencies.
+
+Edit `conanfile.txt` to add/remove dependencies.
+If the library you want to use is on https://conan.io/center/ then simply add it under `[requires]` in
+`conanfile.txt` and to the list of libraries to link in `CMakeLists.txt`. If the library is not in conan center
+then you'll need to learn about Conan _remotes_ and possibly making your own Conan package _recipe_, see
+https://docs.conan.io/en/latest/introduction.html
 
 ## Build
 
