@@ -53,7 +53,7 @@ cmake -GNinja path/to/source/directory
 ninja
 ```
 
-or, worse ;), on Windows
+or, if you must ;), on Windows
 ```
 cmake -G "Visual Studio 15 2017 Win64" path\to\source\directory
 cmake --build . -- -maxcpucount:8
