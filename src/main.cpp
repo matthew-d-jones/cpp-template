@@ -4,7 +4,7 @@
 #include <CLI/CLI.hpp>
 #include <fmt/format.h>
 
-bool parseLogLevel(std::vector<std::string> logLevelString,
+bool parseLogLevel(std::vector<std::string> const &logLevelString,
                    spdlog::level::level_enum &logLevelResult) {
   std::map<std::string, spdlog::level::level_enum> levelMap{
       {"Critical", spdlog::level::critical}, {"Error", spdlog::level::err},
@@ -37,7 +37,7 @@ bool parseLogLevel(std::vector<std::string> logLevelString,
 
 int main(int argc, char **argv) {
   std::string name = "World";
-  spdlog::level::level_enum loggingLevel;
+  spdlog::level::level_enum loggingLevel = spdlog::level::level_enum::debug;
 
   CLI::App app{"Template project"};
 
@@ -48,14 +48,14 @@ int main(int argc, char **argv) {
   or `Critical`. Ex: "-v Debug". Default: `Info`)*";
   app.add_option(
       "-v,--verbosity",
-      [&loggingLevel, logLevelInfoStr](std::vector<std::string> inputString) {
+      [&loggingLevel, logLevelInfoStr](std::vector<std::string> const &inputString) {
         return parseLogLevel(inputString, loggingLevel);
       },
       logLevelInfoStr, true);
 
   CLI11_PARSE(app, argc, argv)
 
-  fmt::print("Hello {}", name);
+  fmt::print("Hello {}\n", name);
 
   auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
   console_sink->set_level(loggingLevel);
@@ -69,6 +69,8 @@ int main(int argc, char **argv) {
   logger.set_level(loggingLevel);
 
   logger.info("Log something");
+
+  logger.flush();
 
   return 0;
 }
