@@ -52,7 +52,7 @@ if (CMAKE_BUILD_TYPE EQUAL "RELEASE")
 endif (CMAKE_BUILD_TYPE EQUAL "RELEASE")
 
 ###############################################################################
-## Options to build documentation (Doxygen)
+## Create target to build documentation (Doxygen)
 ###############################################################################
 
 set(BUILD_DOCS TRUE)
