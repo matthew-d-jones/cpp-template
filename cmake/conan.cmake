@@ -33,6 +33,7 @@
 # but it is only necessary on the end-user side. It is not necessary to create conan
 # packages, in fact it shouldn't be use for that. Check the project documentation.
 
+# version: 0.16.0-dev
 
 include(CMakeParseArguments)
 
@@ -157,8 +158,8 @@ function(conan_cmake_settings result)
         set(_CONAN_SETTING_COMPILER clang)
         set(_CONAN_SETTING_COMPILER_VERSION ${MAJOR}.${MINOR})
         if(APPLE)
-            cmake_policy(GET CMP0025 APPLE_CLANG_POLICY_ENABLED)
-            if(NOT APPLE_CLANG_POLICY_ENABLED)
+            cmake_policy(GET CMP0025 APPLE_CLANG_POLICY)
+            if(NOT APPLE_CLANG_POLICY STREQUAL NEW)
                 message(STATUS "Conan: APPLE and Clang detected. Assuming apple-clang compiler. Set CMP0025 to avoid it")
                 set(_CONAN_SETTING_COMPILER apple-clang)
             endif()
@@ -220,7 +221,7 @@ function(conan_cmake_settings result)
     endif()
 
     foreach(ARG ${_APPLIED_PROFILES})
-        set(_SETTINGS ${_SETTINGS} -pr ${ARG})
+        set(_SETTINGS ${_SETTINGS} -pr=${ARG})
     endforeach()
 
     if(NOT _SETTINGS OR ARGUMENTS_PROFILE_AUTO STREQUAL "ALL")
@@ -318,11 +319,11 @@ endfunction()
 
 
 macro(parse_arguments)
-  set(options BASIC_SETUP CMAKE_TARGETS UPDATE KEEP_RPATHS NO_LOAD NO_OUTPUT_DIRS OUTPUT_QUIET NO_IMPORTS)
+  set(options BASIC_SETUP CMAKE_TARGETS UPDATE KEEP_RPATHS NO_LOAD NO_OUTPUT_DIRS OUTPUT_QUIET NO_IMPORTS SKIP_STD)
   set(oneValueArgs CONANFILE  ARCH BUILD_TYPE INSTALL_FOLDER CONAN_COMMAND)
   set(multiValueArgs DEBUG_PROFILE RELEASE_PROFILE RELWITHDEBINFO_PROFILE MINSIZEREL_PROFILE
                      PROFILE REQUIRES OPTIONS IMPORTS SETTINGS BUILD ENV GENERATORS PROFILE_AUTO
-                     INSTALL_ARGS)
+                     INSTALL_ARGS CONFIGURATION_TYPES)
   cmake_parse_arguments(ARGUMENTS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 endmacro()
 
@@ -409,7 +410,7 @@ function(conan_cmake_setup_conanfile)
   if(ARGUMENTS_CONANFILE)
     get_filename_component(_CONANFILE_NAME ${ARGUMENTS_CONANFILE} NAME)
     # configure_file will make sure cmake re-runs when conanfile is updated
-    configure_file(${ARGUMENTS_CONANFILE} ${CMAKE_CURRENT_BINARY_DIR}/${_CONANFILE_NAME}.junk)
+    configure_file(${ARGUMENTS_CONANFILE} ${CMAKE_CURRENT_BINARY_DIR}/${_CONANFILE_NAME}.junk COPYONLY)
     file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/${_CONANFILE_NAME}.junk)
   else()
     conan_cmake_generate_conanfile(${ARGV})
@@ -464,10 +465,19 @@ endmacro()
 
 macro(conan_cmake_run)
     parse_arguments(${ARGV})
+    
+    if(ARGUMENTS_CONFIGURATION_TYPES AND NOT CMAKE_CONFIGURATION_TYPES)
+        message(WARNING "CONFIGURATION_TYPES should only be specified for multi-configuration generators")
+    elseif(ARGUMENTS_CONFIGURATION_TYPES AND ARGUMENTS_BUILD_TYPE)
+        message(WARNING "CONFIGURATION_TYPES and BUILD_TYPE arguments should not be defined at the same time.")
+    endif()
 
     if(CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE AND NOT CONAN_EXPORTED
             AND NOT ARGUMENTS_BUILD_TYPE)
         set(CONAN_CMAKE_MULTI ON)
+        if (NOT ARGUMENTS_CONFIGURATION_TYPES)
+            set(ARGUMENTS_CONFIGURATION_TYPES "Release;Debug")
+        endif()
         message(STATUS "Conan: Using cmake-multi generator")
     else()
         set(CONAN_CMAKE_MULTI OFF)
@@ -476,7 +486,7 @@ macro(conan_cmake_run)
     if(NOT CONAN_EXPORTED)
         conan_cmake_setup_conanfile(${ARGV})
         if(CONAN_CMAKE_MULTI)
-            foreach(CMAKE_BUILD_TYPE "Release" "Debug")
+            foreach(CMAKE_BUILD_TYPE ${ARGUMENTS_CONFIGURATION_TYPES})
                 set(ENV{CONAN_IMPORT_PATH} ${CMAKE_BUILD_TYPE})
                 conan_cmake_settings(settings ${ARGV})
                 conan_cmake_install(SETTINGS ${settings} ${ARGV})
@@ -489,11 +499,11 @@ macro(conan_cmake_run)
     endif()
 
     if (NOT ARGUMENTS_NO_LOAD)
-    	conan_load_buildinfo()
+      conan_load_buildinfo()
     endif()
 
     if(ARGUMENTS_BASIC_SETUP)
-        foreach(_option CMAKE_TARGETS KEEP_RPATHS NO_OUTPUT_DIRS)
+        foreach(_option CMAKE_TARGETS KEEP_RPATHS NO_OUTPUT_DIRS SKIP_STD)
             if(ARGUMENTS_${_option})
                 if(${_option} STREQUAL "CMAKE_TARGETS")
                     list(APPEND _setup_options "TARGETS")
@@ -559,3 +569,42 @@ function(conan_add_remote)
       ${CONAN_INDEX_ARG} -f)
 endfunction()
 
+macro(conan_config_install)
+    # install a full configuration from a local or remote zip file
+    # Argument ITEM is required, arguments TYPE, SOURCE, TARGET and VERIFY_SSL are optional
+    # Example usage:
+    #    conan_config_install(ITEM https://github.com/conan-io/cmake-conan.git
+    #       TYPE git SOURCE source-folder TARGET target-folder VERIFY_SSL false)
+    set(oneValueArgs ITEM TYPE SOURCE TARGET VERIFY_SSL)
+    set(multiValueArgs ARGS)
+    cmake_parse_arguments(CONAN "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    set(CONAN_CONFIG_INSTALL_ARGS "")
+
+    find_program(CONAN_CMD conan)
+    if(NOT CONAN_CMD AND CONAN_REQUIRED)
+        message(FATAL_ERROR "Conan executable not found!")
+    endif()
+
+    if(DEFINED CONAN_VERIFY_SSL)
+        set(CONAN_CONFIG_INSTALL_ARGS "${CONAN_CONFIG_INSTALL_ARGS} --verify-ssl ${CONAN_VERIFY_SSL}")
+    endif()
+
+    if(DEFINED CONAN_TYPE)
+        set(CONAN_CONFIG_INSTALL_ARGS "${CONAN_CONFIG_INSTALL_ARGS} --type ${CONAN_TYPE}")
+    endif()
+
+    if(DEFINED CONAN_ARGS)
+        set(CONAN_CONFIG_INSTALL_ARGS "${CONAN_CONFIG_INSTALL_ARGS} --args \"${CONAN_ARGS}\"")
+    endif()
+
+    if(DEFINED CONAN_SOURCE)
+        set(CONAN_CONFIG_INSTALL_ARGS "${CONAN_CONFIG_INSTALL_ARGS} --source-folder ${CONAN_SOURCE}")
+    endif()
+
+    if(DEFINED CONAN_TARGET)
+        set(CONAN_CONFIG_INSTALL_ARGS "${CONAN_CONFIG_INSTALL_ARGS} --target-folder ${CONAN_TARGET}")
+    endif()
+
+    message(STATUS "Conan: Installing config from ${CONAN_ITEM}")
+    execute_process(COMMAND ${CONAN_CMD} config install ${CONAN_CONFIG_INSTALL_ARGS} ${CONAN_ITEM})
+endmacro()

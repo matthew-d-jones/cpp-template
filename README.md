@@ -16,11 +16,6 @@ Conan requires Python and pip installed on the system, then:
 pip install conan
 ```
 
-The dependences used here require adding the bincrafters remote conan server:
-```
-conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-```
-
 That should be it, Conan will be run automatically by CMake to download the dependencies.
 
 ## Build

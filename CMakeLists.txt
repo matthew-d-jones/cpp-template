@@ -27,6 +27,16 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything")
 endif()
 
+# Use gold linker if available on system (it is faster than default GNU linker)
+if (UNIX AND NOT APPLE)
+  execute_process(COMMAND ${CMAKE_C_COMPILER} -fuse-ld=gold -Wl,--version ERROR_QUIET OUTPUT_VARIABLE ld_version)
+  if ("${ld_version}" MATCHES "GNU gold")
+    message(STATUS "Using gold linker")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=gold -Wl,--disable-new-dtags")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=gold -Wl,--disable-new-dtags")
+  endif()
+endif()
+
 ###############################################################################
 ## Doxygen
 ###############################################################################
@@ -55,7 +65,8 @@ if (${CONAN} MATCHES "AUTO")
     conan_cmake_run(CONANFILE conanfile.txt
             PROFILE ${CONAN_PROFILE}
             BASIC_SETUP CMAKE_TARGETS
-            BUILD outdated)
+            BUILD outdated
+            KEEP_RPATHS)
 elseif (${CONAN} MATCHES "MANUAL" )
     if (EXISTS "${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
         include("${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
@@ -94,4 +105,4 @@ target_link_libraries(TemplateProject ${LIBRARIES})
 ###############################################################################
 
 add_executable(UnitTests tests/tests.cpp)
-target_link_libraries(UnitTests CONAN_PKG::Catch2)
+target_link_libraries(UnitTests CONAN_PKG::catch2)
