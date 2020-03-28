@@ -117,7 +117,7 @@ add_executable(TemplateProject ${SRC_FILES} ${HDR_FILES})
 target_link_libraries(TemplateProject ${LIBRARIES})
 
 ###############################################################################
-## Unit Tests
+## Create target for unit tests
 ###############################################################################
 
 add_executable(UnitTests tests/tests.cpp)
