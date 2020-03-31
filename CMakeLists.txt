@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.9.0)
 ###############################################################################
 
 # Name
-project(TemplateProject)
+project(TemplateProject LANGUAGES CXX)
 
 # Make a Debug build the default
 if (NOT CMAKE_BUILD_TYPE)
