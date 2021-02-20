@@ -9,6 +9,7 @@ Features:
   - make documentation using doxygen.
   - make use of link-time optimisation if available.
   - make use of a faster linker if available.
+  - use sanitisers
 - Dependency management using [Conan](https://conan.io/).
 - A little example code/boilerplate for libraries I use very frequently:
   - [fmt](https://github.com/fmtlib/fmt)
@@ -21,6 +22,12 @@ Some things this template lacks which I may add in the future:
 - Code coverage configuration
 - Static code analysis configuration
 - Code formatting configuration
+
+[sanitizers-cmake](https://github.com/arsenm/sanitizers-cmake) is used to help enable sanitizers for different compilers.
+It is added as a git subtree. To update use
+```
+git subtree pull --prefix cmake/sanitizers git@github.com:arsenm/sanitizers-cmake.git master --squash
+```
 
 ## Requirements
 

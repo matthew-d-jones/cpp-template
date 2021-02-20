@@ -13,7 +13,9 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Find custom cmake modules
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set(LOCAL_CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${LOCAL_CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH "${LOCAL_CMAKE_MODULE_PATH}/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
@@ -66,6 +68,18 @@ if(CMAKE_BUILD_TYPE MATCHES Release)
 endif(CMAKE_BUILD_TYPE MATCHES Release)
 
 ###############################################################################
+## Sanitisers
+###############################################################################
+
+find_package(Sanitizers)
+# Add sanitisers to a target like this:
+# add_sanitizers(some_lib)
+# add_sanitizers(some_exe)
+# And enable them with CMake settings:
+# SANITIZE_ADDRESS, SANITIZE_MEMORY, SANITIZE_THREAD or SANITIZE_UNDEFINED
+# for example -DSANITIZE_ADDRESS=On
+
+###############################################################################
 ## Create target to build documentation (Doxygen)
 ###############################################################################
 
@@ -88,7 +102,7 @@ endif()
 
 set(CONAN "AUTO" CACHE STRING "conan options AUTO (conan must be in path) or MANUAL (expects conanbuildinfo.cmake in build directory)")
 set(CONAN_PROFILE "default" CACHE STRING "Name of conan profile to use, uses default by default")
-include(${CMAKE_MODULE_PATH}/conan.cmake)
+include(${LOCAL_CMAKE_MODULE_PATH}/conan.cmake)
 if (${CONAN} MATCHES "AUTO")
     conan_cmake_run(CONANFILE conanfile.txt
             PROFILE ${CONAN_PROFILE}
@@ -127,6 +141,7 @@ set(LIBRARIES
 
 add_executable(TemplateProject ${SRC_FILES} ${HDR_FILES})
 target_link_libraries(TemplateProject ${LIBRARIES})
+add_sanitizers(TemplateProject)
 
 ###############################################################################
 ## Create target for unit tests
